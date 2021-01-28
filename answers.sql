@@ -126,7 +126,7 @@ SELECT name, continent FROM world
   WHERE continent IN (
     (SELECT continent FROM world WHERE name = 'Argentina'),
     (SELECT continent FROM world WHERE name = 'Australia')
-    );
+    ) ORDER BY name;
 
 SELECT name FROM world
   WHERE population > (SELECT population FROM world WHERE name = 'Canada')
@@ -135,4 +135,6 @@ SELECT name FROM world
 SELECT name,
   CONCAT(ROUND(100 * population / (SELECT population FROM world WHERE name = 'Germany')), '%') AS percentage
   FROM world WHERE continent = 'Europe';
+
+SELECT name FROM world WHERE gdp > ALL(SELECT gdp FROM world WHERE continent = 'Europe' AND gdp > 0);
 
