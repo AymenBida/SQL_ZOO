@@ -114,3 +114,5 @@ SELECT winner, subject
   WHERE yr=1984
   ORDER BY subject IN ('Physics','Chemistry'), subject, winner;
 
+--Exercice 5:
+
