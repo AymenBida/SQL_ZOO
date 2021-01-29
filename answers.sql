@@ -348,3 +348,21 @@ SELECT party, COUNT(votes) FROM ge x
 
 --Exercice 12:
 
+SELECT name, DAY(whn), confirmed, deaths, recovered FROM covid
+  WHERE name = 'Spain' AND MONTH(whn) = 3 ORDER BY whn;
+
+SELECT name, DAY(whn), confirmed, LAG(confirmed, 1) OVER (PARTITION BY name ORDER BY whn) FROM covid
+  WHERE name = 'Italy' AND MONTH(whn) = 3 ORDER BY whn;
+
+SELECT name,
+  DAY(whn),
+  confirmed - LAG(confirmed, 1) OVER (PARTITION BY name ORDER BY whn) AS new_cases
+  FROM covid
+  WHERE name = 'Italy' AND MONTH(whn) = 3 ORDER BY whn;
+
+SELECT name,
+  DATE_FORMAT(whn, '%Y-%m-%d'),
+  confirmed - LAG(confirmed, 1) OVER (PARTITION BY name ORDER by whn) AS new_cases
+  FROM covid
+  WHERE name = 'Italy' AND WEEKDAY(whn) = 0 ORDER BY whn;
+
