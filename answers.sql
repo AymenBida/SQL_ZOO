@@ -229,19 +229,22 @@ SELECT title FROM movie JOIN casting ON id = movieid
 SELECT title FROM movie JOIN casting ON id = movieid
   WHERE actorid = (SELECT id FROM actor WHERE name = 'Harrison Ford') AND ord != 1;
 
-SELECT title, name FROM movie
-  JOIN casting ON movie.id = movieid
-  JOIN actor ON actor.id = actorid
+SELECT title, name
+  FROM movie
+    JOIN casting ON movie.id = movieid
+    JOIN actor ON actor.id = actorid
   WHERE yr = 1962 AND ord = 1;
 
-SELECT yr, COUNT(title) FROM movie
-  JOIN casting ON movie.id = movieid
-  JOIN actor   ON actorid = actor.id
+SELECT yr, COUNT(title)
+  FROM movie
+    JOIN casting ON movie.id = movieid
+    JOIN actor   ON actorid = actor.id
   WHERE name = 'Rock Hudson' GROUP BY yr HAVING COUNT(title) > 2;
 
-SELECT title, name FROM casting
-  JOIN movie ON (movie.id = movieid AND ord = 1)
-  JOIN actor ON actor.id = actorid
+SELECT title, name
+  FROM casting
+    JOIN movie ON (movie.id = movieid AND ord = 1)
+    JOIN actor ON actor.id = actorid
   WHERE movie.id IN (
     SELECT movieid FROM casting WHERE actorid IN (
       SELECT id FROM actor WHERE name='Julie Andrews'));
@@ -257,9 +260,9 @@ SELECT title, COUNT(actorid) FROM movie JOIN casting on id = movieid
 SELECT DISTINCT name FROM actor
   JOIN casting ON actor.id = actorid
   WHERE name != 'Art Garfunkel'
-  AND movieid IN (SELECT movieid FROM casting
-                    WHERE actorid = (SELECT actor.id FROM actor
-                                      WHERE name = 'Art Garfunkel'));
+    AND movieid IN (SELECT movieid FROM casting
+                      WHERE actorid = (SELECT actor.id FROM actor
+                                        WHERE name = 'Art Garfunkel'));
 
 --Exercice 9:
 
@@ -281,13 +284,13 @@ SELECT dept.name, COUNT(teacher.name) FROM teacher RIGHT JOIN dept ON (teacher.d
 
 SELECT teacher.name,
   CASE WHEN (dept.id = 1 OR dept.id = 2) THEN 'Sci'
-  ELSE 'Art' END
+    ELSE 'Art' END
   FROM teacher LEFT JOIN dept ON (teacher.dept = dept.id);
 
 SELECT teacher.name,
   CASE WHEN (dept.id = 1 OR dept.id = 2) THEN 'Sci'
-  WHEN dept.id = 3 THEN 'Art'
-  ELSE 'None' END
+    WHEN dept.id = 3 THEN 'Art'
+    ELSE 'None' END
   FROM teacher LEFT JOIN dept ON (teacher.dept = dept.id);
 
 --Exercice 10:
@@ -336,14 +339,14 @@ SELECT constituency, party
     SELECT constituency, party, votes, RANK() OVER (PARTITION BY constituency ORDER BY votes DESC) rank
     FROM ge
     WHERE constituency BETWEEN 'S14000021' AND 'S14000026'
-    AND yr  = 2017
+      AND yr  = 2017
     ORDER BY rank, constituency) AS x
   WHERE rank = 1;
 
 SELECT party, COUNT(votes) FROM ge x
   WHERE constituency LIKE 'S%'
-  AND yr = 2017
-  AND votes >= ALL(SELECT votes FROM ge y WHERE x.constituency = y.constituency AND y.yr = 2017)
+    AND yr = 2017
+    AND votes >= ALL(SELECT votes FROM ge y WHERE x.constituency = y.constituency AND y.yr = 2017)
   GROUP BY party;
 
 --Exercice 12:
@@ -365,4 +368,50 @@ SELECT name,
   confirmed - LAG(confirmed, 1) OVER (PARTITION BY name ORDER by whn) AS new_cases
   FROM covid
   WHERE name = 'Italy' AND WEEKDAY(whn) = 0 ORDER BY whn;
+
+--Exercice 13:
+
+SELECT count(id) AS Total_stops FROM stops;
+
+SELECT id FROM stops WHERE name = 'Craiglockhart';
+
+SELECT id, name FROM stops JOIN route ON stop = id WHERE num = 4 AND company = 'LRT' ORDER BY pos;
+
+SELECT company, num, COUNT(*)
+  FROM route WHERE stop = 149 OR stop = 53
+  GROUP BY company, num HAVING COUNT(*) > 1;
+
+SELECT a.company, a.num, a.stop, b.stop
+  FROM route a JOIN route b ON (a.company = b.company AND a.num = b.num)
+  WHERE a.stop = 53 AND b.stop = (SELECT id FROM stops WHERE name = 'London Road');
+
+SELECT a.company, a.num, stopa.name, stopb.name
+  FROM route a JOIN route b ON (a.company = b.company AND a.num = b.num)
+    JOIN stops stopa ON (a.stop = stopa.id)
+    JOIN stops stopb ON (b.stop = stopb.id)
+  WHERE stopa.name = 'Craiglockhart' AND stopb.name = 'London Road';
+
+SELECT DISTINCT a.company, a.num
+  FROM route a JOIN route b ON (a.company = b.company AND a.num = b.num)
+  WHERE a.stop = 115 AND b.stop = 137;
+
+SELECT a.company, a.num
+  FROM route a JOIN route b ON (a.company = b.company AND a.num = b.num)
+  WHERE a.stop = (SELECT id FROM stops WHERE name = 'Craiglockhart')
+    AND b.stop = (SELECT id FROM stops WHERE name = 'Tollcross');
+
+SELECT DISTINCT name, a.company, a.num
+  FROM route a
+    JOIN route b ON (a.company = b.company AND a.num = b.num)
+    JOIN stops ON a.stop = stops.id
+  WHERE b.stop = (SELECT id FROM stops WHERE name = 'Craiglockhart');
+
+SELECT b.num, b.company, stops.name, d.num, d.company
+  FROM route a
+    JOIN route b ON a.num = b.num AND a.company = b.company
+    JOIN (route c JOIN route d ON c.num = d.num AND c.company = d.company)
+    JOIN stops ON b.stop = stops.id
+  WHERE a.stop = (SELECT id FROM stops WHERE name = 'Craiglockhart')
+    AND c.stop = (SELECT id FROM stops WHERE name = 'Lochend')
+    AND b.stop = d.stop ORDER BY b.num, b.company, stops.name, d.num;
 
